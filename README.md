@@ -19,6 +19,22 @@ Traditional food delivery platforms struggle on sprawling rural/suburban univers
 
 ---
 
+## App Screenshots
+
+| Campus Ordering & Break-Slot Hero | Kerala, Indian & Western Student Menu |
+| :---: | :---: |
+| ![QuadBite Hero & Campus Selector](docs/screenshots/01-hero-campus-ordering.png) | ![QuadBite Kerala & Campus Menu](docs/screenshots/02-kerala-campus-menu.png) |
+
+| Two-Campus Live Google Maps Tracker | Mess-Skip Bundles & Steel Tiffin Savings |
+| :---: | :---: |
+| ![Saintgits Two-Campus Google Map](docs/screenshots/03-campus-map-tracker.png) | ![Mess-Skip Weekly Bundles & Pricing Comparison](docs/screenshots/04-bundles-and-tiffin.png) |
+
+| Student Runner Dispatch Portal | Kitchen Partner Live Operations Portal |
+| :---: | :---: |
+| ![Student Runner Mode Dispatch](docs/screenshots/05-runner-portal.png) | ![Kitchen Partner Portal](docs/screenshots/06-kitchen-portal.png) |
+
+---
+
 ## Alignment with Google Generative AI Leader Principles
 
 | Certification Pillar | How QuadBite Applies It |
@@ -72,6 +88,8 @@ Traditional food delivery platforms struggle on sprawling rural/suburban univers
 ├── eslint.config.js            # Security rules linter config
 ├── vite.config.ts              # Vite + environment configuration
 ├── .env.example                # Required environment variable template
+├── docs/
+│   └── screenshots/            # Application reference screenshots for README
 └── src/
     ├── App.tsx                 # Main orchestration, role switching & Firestore listeners
     ├── main.tsx                # Entry point & Maps quota error listener
