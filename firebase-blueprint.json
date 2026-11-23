@@ -1,0 +1,466 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated Saintgits campus account profile with verified campus wing, saved drop pins, QuadPass, Meal Wallet, weekly bundles, and active role preferences.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 120
+        },
+        "campus": {
+          "type": "string",
+          "enum": ["Engineering Campus", "Applied Sciences Campus"]
+        },
+        "departmentYear": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "activeRole": {
+          "type": "string",
+          "enum": ["student", "runner", "kitchen"]
+        },
+        "runnerOnDuty": {
+          "type": "boolean"
+        },
+        "runnerTransportMode": {
+          "type": "string",
+          "enum": ["foot", "bike", "scooter"]
+        },
+        "runnerShiftEarnings": {
+          "type": "number"
+        },
+        "runnerCompletedCount": {
+          "type": "number"
+        },
+        "assignedKitchenId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "hasQuadPass": {
+          "type": "boolean"
+        },
+        "walletBalance": {
+          "type": "number"
+        },
+        "lunchBundleCredits": {
+          "type": "number"
+        },
+        "snackBundleCredits": {
+          "type": "number"
+        },
+        "savedPins": {
+          "type": "array",
+          "description": "Bounded up to 8 saved campus drop-off spots"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "email",
+        "campus",
+        "departmentYear",
+        "activeRole",
+        "runnerOnDuty",
+        "runnerTransportMode",
+        "runnerShiftEarnings",
+        "runnerCompletedCount",
+        "assignedKitchenId",
+        "hasQuadPass",
+        "walletBalance",
+        "lunchBundleCredits",
+        "snackBundleCredits",
+        "savedPins",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CampusOrder": {
+      "title": "CampusOrder",
+      "description": "Live campus food order flowing across Student checkout, Kitchen Partner queue, and Student Runner delivery across the 40-acre Saintgits estate.",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "customerUid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "customerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "kitchenId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "kitchenName": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "items": {
+          "type": "array",
+          "description": "Ordered menu items (max 25)"
+        },
+        "pin": {
+          "type": "object",
+          "description": "Selected campus drop-off pin metadata"
+        },
+        "pinDetail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "scheduledSlot": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "reusableTiffin": {
+          "type": "boolean"
+        },
+        "usedLunchCredit": {
+          "type": "boolean"
+        },
+        "groupBatchId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "subtotal": {
+          "type": "number"
+        },
+        "tiffinDiscount": {
+          "type": "number"
+        },
+        "deliveryFee": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "batchCode": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "batchedWithCount": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["queued", "preparing", "ready", "picked_up", "en_route", "delivered"]
+        },
+        "stage": {
+          "type": "number"
+        },
+        "runnerUid": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "runnerName": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "runnerYear": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "runnerMode": {
+          "type": "string",
+          "enum": ["foot", "bike", "scooter"]
+        },
+        "runnerPayout": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "orderId",
+        "customerUid",
+        "customerName",
+        "kitchenId",
+        "kitchenName",
+        "items",
+        "pin",
+        "pinDetail",
+        "scheduledSlot",
+        "reusableTiffin",
+        "usedLunchCredit",
+        "groupBatchId",
+        "subtotal",
+        "tiffinDiscount",
+        "deliveryFee",
+        "total",
+        "paymentMethod",
+        "batchCode",
+        "batchedWithCount",
+        "status",
+        "stage",
+        "runnerUid",
+        "runnerName",
+        "runnerYear",
+        "runnerMode",
+        "runnerPayout",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "KitchenOperationalState": {
+      "title": "KitchenOperationalState",
+      "description": "Live kitchen prep queue offset, rush level, and sold-out dish IDs managed by Kitchen Partner staff.",
+      "type": "object",
+      "properties": {
+        "kitchenId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "prepTimeOffsetMin": {
+          "type": "number"
+        },
+        "busyLevel": {
+          "type": "string",
+          "enum": ["normal", "busy", "rush"]
+        },
+        "soldOutDishIds": {
+          "type": "array",
+          "description": "Bounded up to 20 sold-out dish IDs"
+        },
+        "updatedByUid": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "kitchenId",
+        "prepTimeOffsetMin",
+        "busyLevel",
+        "soldOutDishIds",
+        "updatedByUid",
+        "updatedAt"
+      ]
+    },
+    "GroupBatchCart": {
+      "title": "GroupBatchCart",
+      "description": "Shareable live group/hostel batch ordering room allowing classmates and roommates to combine meals and split UPI totals.",
+      "type": "object",
+      "properties": {
+        "batchId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "hostUid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "hostName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "pin": {
+          "type": "object"
+        },
+        "pinDetail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "scheduledSlot": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "reusableTiffin": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "placed", "closed"]
+        },
+        "placedOrderId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "batchId",
+        "title",
+        "hostUid",
+        "hostName",
+        "pin",
+        "pinDetail",
+        "scheduledSlot",
+        "reusableTiffin",
+        "status",
+        "placedOrderId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "GroupBatchItem": {
+      "title": "GroupBatchItem",
+      "description": "Individual student meal line added inside an open shared group batch.",
+      "type": "object",
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "participantUid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "participantName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "participantCampus": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "dishId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "dishName": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "kitchenId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "kitchenName": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "optionId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "optionLabel": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "unitPrice": {
+          "type": "number"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "itemId",
+        "participantUid",
+        "participantName",
+        "participantCampus",
+        "dishId",
+        "dishName",
+        "kitchenId",
+        "kitchenName",
+        "optionId",
+        "optionLabel",
+        "unitPrice",
+        "quantity",
+        "note",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Owner-isolated student/runner/kitchen account profile, saved campus pins, wallet balance, QuadPass, and meal bundle credits."
+    },
+    "/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/CampusOrder"
+      },
+      "description": "Campus orders visible to the customer, assigned runner, or active campus queue when status is non-delivered."
+    },
+    "/kitchenStatuses/{kitchenId}": {
+      "schema": {
+        "$ref": "#/entities/KitchenOperationalState"
+      },
+      "description": "Real-time kitchen prep times, rush load, and sold-out dish IDs synced to the menu."
+    },
+    "/groupBatches/{batchId}": {
+      "schema": {
+        "$ref": "#/entities/GroupBatchCart"
+      },
+      "description": "Shared group/hostel batch room metadata."
+    },
+    "/groupBatches/{batchId}/items/{itemId}": {
+      "schema": {
+        "$ref": "#/entities/GroupBatchItem"
+      },
+      "description": "Participant-owned line items inside an open group batch."
+    }
+  }
+}

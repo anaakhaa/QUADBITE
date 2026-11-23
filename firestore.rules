@@ -1,0 +1,408 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net: Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Shared Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedSignedIn() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerifiedSignedIn() && request.auth.uid == userId;
+    }
+
+    function isNonEmptyStr(val, maxLen) {
+      return val is string && val.size() >= 1 && val.size() <= maxLen;
+    }
+
+    function isBoundedStr(val, maxLen) {
+      return val is string && val.size() <= maxLen;
+    }
+
+    function isValidCampus(val) {
+      return val in ['Engineering Campus', 'Applied Sciences Campus'];
+    }
+
+    function isValidPinMap(pin) {
+      return pin is map
+        && pin.keys().hasAll([
+          'id', 'name', 'campusGroup', 'zone', 'detailPlaceholder',
+          'defaultDetail', 'etaMinutes', 'keycardRequired', 'activeBatchCount',
+          'x', 'y', 'lat', 'lng'
+        ])
+        && pin.keys().hasOnly([
+          'id', 'name', 'campusGroup', 'zone', 'detailPlaceholder',
+          'defaultDetail', 'etaMinutes', 'keycardRequired', 'activeBatchCount',
+          'x', 'y', 'lat', 'lng'
+        ])
+        && isBoundedStr(pin.id, 64)
+        && isNonEmptyStr(pin.name, 80)
+        && pin.campusGroup in ['Engineering Campus', 'Applied Sciences Campus', 'Shared Hostels & Grounds']
+        && isBoundedStr(pin.zone, 120)
+        && isBoundedStr(pin.detailPlaceholder, 140)
+        && isBoundedStr(pin.defaultDetail, 140)
+        && pin.etaMinutes is number && pin.etaMinutes >= 1 && pin.etaMinutes <= 120
+        && pin.keycardRequired is bool
+        && pin.activeBatchCount is number && pin.activeBatchCount >= 0 && pin.activeBatchCount <= 500
+        && pin.x is number && pin.y is number
+        && pin.lat is number && pin.lat >= -90 && pin.lat <= 90
+        && pin.lng is number && pin.lng >= -180 && pin.lng <= 180;
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll([
+          'uid', 'displayName', 'email', 'campus', 'departmentYear',
+          'activeRole', 'runnerOnDuty', 'runnerTransportMode',
+          'runnerShiftEarnings', 'runnerCompletedCount', 'assignedKitchenId',
+          'hasQuadPass', 'walletBalance', 'lunchBundleCredits',
+          'snackBundleCredits', 'savedPins', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'displayName', 'email', 'campus', 'departmentYear',
+          'activeRole', 'runnerOnDuty', 'runnerTransportMode',
+          'runnerShiftEarnings', 'runnerCompletedCount', 'assignedKitchenId',
+          'hasQuadPass', 'walletBalance', 'lunchBundleCredits',
+          'snackBundleCredits', 'savedPins', 'createdAt', 'updatedAt'
+        ])
+        && data.uid == userId
+        && isValidId(data.uid)
+        && isNonEmptyStr(data.displayName, 80)
+        && isNonEmptyStr(data.email, 120)
+        && isValidCampus(data.campus)
+        && isBoundedStr(data.departmentYear, 60)
+        && data.activeRole in ['student', 'runner', 'kitchen']
+        && data.runnerOnDuty is bool
+        && data.runnerTransportMode in ['foot', 'bike', 'scooter']
+        && data.runnerShiftEarnings is number && data.runnerShiftEarnings >= 0 && data.runnerShiftEarnings <= 50000
+        && data.runnerCompletedCount is number && data.runnerCompletedCount >= 0 && data.runnerCompletedCount <= 5000
+        && isBoundedStr(data.assignedKitchenId, 64)
+        && data.hasQuadPass is bool
+        && data.walletBalance is number && data.walletBalance >= 0 && data.walletBalance <= 50000
+        && data.lunchBundleCredits is number && data.lunchBundleCredits >= 0 && data.lunchBundleCredits <= 50
+        && data.snackBundleCredits is number && data.snackBundleCredits >= 0 && data.snackBundleCredits <= 50
+        && data.savedPins is list && data.savedPins.size() <= 8
+        && (data.savedPins.size() == 0 || isValidPinMap(data.savedPins[0]))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCampusOrder(data, orderId) {
+      return data.keys().hasAll([
+          'orderId', 'customerUid', 'customerName', 'kitchenId', 'kitchenName',
+          'items', 'pin', 'pinDetail', 'scheduledSlot', 'reusableTiffin',
+          'usedLunchCredit', 'groupBatchId', 'subtotal', 'tiffinDiscount',
+          'deliveryFee', 'total', 'paymentMethod', 'batchCode',
+          'batchedWithCount', 'status', 'stage', 'runnerUid', 'runnerName',
+          'runnerYear', 'runnerMode', 'runnerPayout', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'orderId', 'customerUid', 'customerName', 'kitchenId', 'kitchenName',
+          'items', 'pin', 'pinDetail', 'scheduledSlot', 'reusableTiffin',
+          'usedLunchCredit', 'groupBatchId', 'subtotal', 'tiffinDiscount',
+          'deliveryFee', 'total', 'paymentMethod', 'batchCode',
+          'batchedWithCount', 'status', 'stage', 'runnerUid', 'runnerName',
+          'runnerYear', 'runnerMode', 'runnerPayout', 'createdAt', 'updatedAt'
+        ])
+        && data.orderId == orderId
+        && isValidId(data.orderId)
+        && isValidId(data.customerUid)
+        && isNonEmptyStr(data.customerName, 80)
+        && isNonEmptyStr(data.kitchenId, 64)
+        && isNonEmptyStr(data.kitchenName, 80)
+        && data.items is list && data.items.size() >= 1 && data.items.size() <= 25
+        && data.items[0] is map
+        && data.items[0].keys().hasAll(['cartItemId', 'dish', 'selectedOption', 'quantity', 'note'])
+        && isValidPinMap(data.pin)
+        && isNonEmptyStr(data.pinDetail, 140)
+        && isNonEmptyStr(data.scheduledSlot, 60)
+        && data.reusableTiffin is bool
+        && data.usedLunchCredit is bool
+        && isBoundedStr(data.groupBatchId, 64)
+        && data.subtotal is number && data.subtotal >= 0 && data.subtotal <= 50000
+        && data.tiffinDiscount is number && data.tiffinDiscount >= 0 && data.tiffinDiscount <= 100
+        && data.deliveryFee is number && data.deliveryFee >= 0 && data.deliveryFee <= 200
+        && data.total is number && data.total >= 0 && data.total <= 50000
+        && isNonEmptyStr(data.paymentMethod, 60)
+        && isNonEmptyStr(data.batchCode, 20)
+        && data.batchedWithCount is number && data.batchedWithCount >= 1 && data.batchedWithCount <= 50
+        && data.status in ['queued', 'preparing', 'ready', 'picked_up', 'en_route', 'delivered']
+        && data.stage is number && data.stage >= 0 && data.stage <= 3
+        && isBoundedStr(data.runnerUid, 128)
+        && isBoundedStr(data.runnerName, 80)
+        && isBoundedStr(data.runnerYear, 60)
+        && data.runnerMode in ['foot', 'bike', 'scooter']
+        && data.runnerPayout is number && data.runnerPayout >= 0 && data.runnerPayout <= 1000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidKitchenStatus(data, kitchenId) {
+      return data.keys().hasAll([
+          'kitchenId', 'prepTimeOffsetMin', 'busyLevel', 'soldOutDishIds', 'updatedByUid', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'kitchenId', 'prepTimeOffsetMin', 'busyLevel', 'soldOutDishIds', 'updatedByUid', 'updatedAt'
+        ])
+        && data.kitchenId == kitchenId
+        && isValidId(data.kitchenId)
+        && data.prepTimeOffsetMin is number && data.prepTimeOffsetMin >= 0 && data.prepTimeOffsetMin <= 45
+        && data.busyLevel in ['normal', 'busy', 'rush']
+        && data.soldOutDishIds is list && data.soldOutDishIds.size() <= 20
+        && (data.soldOutDishIds.size() == 0 || isNonEmptyStr(data.soldOutDishIds[0], 64))
+        && data.updatedByUid == request.auth.uid
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidGroupBatch(data, batchId) {
+      return data.keys().hasAll([
+          'batchId', 'title', 'hostUid', 'hostName', 'pin', 'pinDetail',
+          'scheduledSlot', 'reusableTiffin', 'status', 'placedOrderId', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'batchId', 'title', 'hostUid', 'hostName', 'pin', 'pinDetail',
+          'scheduledSlot', 'reusableTiffin', 'status', 'placedOrderId', 'createdAt', 'updatedAt'
+        ])
+        && data.batchId == batchId
+        && isValidId(data.batchId)
+        && isValidId(data.hostUid)
+        && isNonEmptyStr(data.title, 80)
+        && isNonEmptyStr(data.hostName, 80)
+        && isValidPinMap(data.pin)
+        && isNonEmptyStr(data.pinDetail, 140)
+        && isNonEmptyStr(data.scheduledSlot, 60)
+        && data.reusableTiffin is bool
+        && data.status in ['open', 'placed', 'closed']
+        && isBoundedStr(data.placedOrderId, 64)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidGroupBatchItem(data, itemId) {
+      return data.keys().hasAll([
+          'itemId', 'participantUid', 'participantName', 'participantCampus',
+          'dishId', 'dishName', 'kitchenId', 'kitchenName', 'optionId',
+          'optionLabel', 'unitPrice', 'quantity', 'note', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'itemId', 'participantUid', 'participantName', 'participantCampus',
+          'dishId', 'dishName', 'kitchenId', 'kitchenName', 'optionId',
+          'optionLabel', 'unitPrice', 'quantity', 'note', 'createdAt'
+        ])
+        && data.itemId == itemId
+        && isValidId(data.itemId)
+        && isValidId(data.participantUid)
+        && isNonEmptyStr(data.participantName, 80)
+        && isNonEmptyStr(data.participantCampus, 40)
+        && isNonEmptyStr(data.dishId, 64)
+        && isNonEmptyStr(data.dishName, 100)
+        && isNonEmptyStr(data.kitchenId, 64)
+        && isNonEmptyStr(data.kitchenName, 80)
+        && isNonEmptyStr(data.optionId, 64)
+        && isNonEmptyStr(data.optionLabel, 80)
+        && data.unitPrice is number && data.unitPrice >= 0 && data.unitPrice <= 5000
+        && data.quantity is number && data.quantity >= 1 && data.quantity <= 10
+        && isBoundedStr(data.note, 140)
+        && data.createdAt is timestamp;
+    }
+
+    // 4. Connection Probe
+    match /test/connection {
+      allow get: if isSignedIn();
+      allow list, write: if false;
+    }
+
+    // 5. Users Collection (Strict PII & Wallet Isolation)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list: if false;
+      allow create: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'displayName', 'campus', 'departmentYear', 'activeRole',
+          'runnerOnDuty', 'runnerTransportMode', 'runnerShiftEarnings',
+          'runnerCompletedCount', 'assignedKitchenId', 'hasQuadPass',
+          'walletBalance', 'lunchBundleCredits', 'snackBundleCredits',
+          'savedPins', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    // 6. Orders Collection (Student, Kitchen Partner, Runner Action-Based Lifecycle)
+    match /orders/{orderId} {
+      allow get: if isValidId(orderId) && isVerifiedSignedIn() && (
+        existing().customerUid == request.auth.uid
+        || existing().runnerUid == request.auth.uid
+        || existing().status in ['queued', 'preparing', 'ready', 'picked_up', 'en_route']
+      );
+
+      allow list: if isVerifiedSignedIn() && (
+        resource.data.customerUid == request.auth.uid
+        || resource.data.runnerUid == request.auth.uid
+        || resource.data.status in ['queued', 'preparing', 'ready', 'picked_up', 'en_route']
+      );
+
+      allow create: if isValidId(orderId)
+        && isVerifiedSignedIn()
+        && isValidCampusOrder(incoming(), orderId)
+        && incoming().customerUid == request.auth.uid
+        && incoming().runnerUid == ''
+        && incoming().status == 'queued'
+        && incoming().stage == 0
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isValidId(orderId)
+        && isVerifiedSignedIn()
+        && isValidCampusOrder(incoming(), orderId)
+        && existing().status != 'delivered'
+        && incoming().orderId == existing().orderId
+        && incoming().customerUid == existing().customerUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          // Action 1: Kitchen Partner accepts/prepares/marks ready
+          (
+            incoming().status in ['preparing', 'ready']
+            && incoming().stage in [0, 1]
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'stage', 'updatedAt'])
+          )
+          ||
+          // Action 2: Verified Student Runner claims unassigned order
+          (
+            existing().runnerUid == ''
+            && incoming().runnerUid == request.auth.uid
+            && incoming().status == 'picked_up'
+            && incoming().stage == 1
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'runnerUid', 'runnerName', 'runnerYear', 'runnerMode', 'status', 'stage', 'updatedAt'
+            ])
+          )
+          ||
+          // Action 3: Assigned Runner or Customer advances delivery progress
+          (
+            (existing().runnerUid == request.auth.uid || existing().customerUid == request.auth.uid)
+            && incoming().stage >= existing().stage
+            && incoming().stage <= 3
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'stage', 'updatedAt'])
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    // 7. Kitchen Operational States (Sold-Out & Prep Delays)
+    match /kitchenStatuses/{kitchenId} {
+      allow get: if isValidId(kitchenId) && isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isValidId(kitchenId)
+        && isVerifiedSignedIn()
+        && isValidKitchenStatus(incoming(), kitchenId)
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(kitchenId)
+        && isVerifiedSignedIn()
+        && isValidKitchenStatus(incoming(), kitchenId)
+        && incoming().kitchenId == existing().kitchenId
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'prepTimeOffsetMin', 'busyLevel', 'soldOutDishIds', 'updatedByUid', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    // 8. Group / Hostel Batch Carts & Participant Items
+    match /groupBatches/{batchId} {
+      allow get: if isValidId(batchId) && isVerifiedSignedIn();
+      allow list: if isVerifiedSignedIn() && resource.data.hostUid == request.auth.uid;
+
+      allow create: if isValidId(batchId)
+        && isVerifiedSignedIn()
+        && isValidGroupBatch(incoming(), batchId)
+        && incoming().hostUid == request.auth.uid
+        && incoming().status == 'open'
+        && incoming().placedOrderId == ''
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isValidId(batchId)
+        && isVerifiedSignedIn()
+        && isValidGroupBatch(incoming(), batchId)
+        && existing().hostUid == request.auth.uid
+        && existing().status == 'open'
+        && incoming().batchId == existing().batchId
+        && incoming().hostUid == existing().hostUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'pin', 'pinDetail', 'scheduledSlot', 'reusableTiffin', 'status', 'placedOrderId', 'updatedAt'
+        ]);
+
+      allow delete: if false;
+
+      // Master Gate Subcollection for Group Batch Items
+      match /items/{itemId} {
+        function parentBatch() {
+          return get(/databases/$(database)/documents/groupBatches/$(batchId));
+        }
+
+        allow get: if isValidId(batchId) && isValidId(itemId) && isVerifiedSignedIn() && parentBatch().data != null;
+        allow list: if isVerifiedSignedIn() && isNonEmptyStr(resource.data.participantUid, 128);
+
+        allow create: if isValidId(batchId)
+          && isValidId(itemId)
+          && isVerifiedSignedIn()
+          && isValidGroupBatchItem(incoming(), itemId)
+          && incoming().participantUid == request.auth.uid
+          && incoming().createdAt == request.time
+          && parentBatch().data.status == 'open';
+
+        allow update: if isValidId(batchId)
+          && isValidId(itemId)
+          && isVerifiedSignedIn()
+          && isValidGroupBatchItem(incoming(), itemId)
+          && existing().participantUid == request.auth.uid
+          && incoming().itemId == existing().itemId
+          && incoming().participantUid == existing().participantUid
+          && incoming().createdAt == existing().createdAt
+          && incoming().diff(existing()).affectedKeys().hasOnly(['quantity', 'note'])
+          && parentBatch().data.status == 'open';
+
+        allow delete: if isValidId(batchId)
+          && isValidId(itemId)
+          && isVerifiedSignedIn()
+          && (existing().participantUid == request.auth.uid || parentBatch().data.hostUid == request.auth.uid)
+          && parentBatch().data.status == 'open';
+      }
+    }
+  }
+}
