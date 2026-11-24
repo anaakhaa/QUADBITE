@@ -33,6 +33,8 @@ Traditional food delivery platforms struggle on sprawling rural/suburban univers
 | :---: | :---: |
 | ![Student Runner Mode Dispatch](docs/screenshots/05-runner-portal.png) | ![Kitchen Partner Portal](docs/screenshots/06-kitchen-portal.png) |
 
+> 🎥 **[Watch Full App Walkthrough Video (WebM)](docs/video/quadbite_walkthrough.webm)** — A complete end-to-end recorded demonstration showcasing student campus ordering, break-slot scheduling, live Google Maps routing across the 40-acre estate, Student Runner mode, and Kitchen Partner operations.
+
 ---
 
 ## Alignment with Google Generative AI Leader Principles
